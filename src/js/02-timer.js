@@ -1,5 +1,7 @@
-import flatpickr from "flatpickr";
-import "flatpickr/dist/flatpickr.min.css";
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+
+let timerIsRunning = false;
 
 const options = {
   enableTime: true,
@@ -11,31 +13,36 @@ const options = {
     const currentDate = new Date();
 
     if (selectedDate <= currentDate) {
-      window.alert("Please choose a date in the future");
+      window.alert('Please choose a date in the future');
       return;
     }
 
-    const startBtn = document.getElementById("start-btn");
+    const startBtn = document.getElementById('start-btn');
     startBtn.disabled = false;
   },
 };
 
-const dateTimePicker = flatpickr("#datetime-picker", options);
+const dateTimePicker = flatpickr('#datetime-picker', options);
 
 function addLeadingZero(value) {
-  return value.toString().padStart(2, "0");
+  return value.toString().padStart(2, '0');
 }
 
 function startTimer() {
+  if (timerIsRunning) {
+    return;
+  }
+
   const selectedDate = dateTimePicker.selectedDates[0];
-  const timerElem = document.getElementById("timer");
+  const timerElem = document.getElementById('timer');
   const intervalId = setInterval(() => {
     const currentDate = new Date();
     const remainingTime = selectedDate.getTime() - currentDate.getTime();
 
     if (remainingTime <= 0) {
       clearInterval(intervalId);
-      timerElem.textContent = "00:00:00:00";
+      timerElem.textContent = '00:00:00:00';
+      timerIsRunning = false;
       return;
     }
 
@@ -45,10 +52,12 @@ function startTimer() {
       hours
     )}:${addLeadingZero(minutes)}:${addLeadingZero(seconds)}`;
   }, 1000);
+
+  timerIsRunning = true;
 }
 
-const startBtn = document.getElementById("start-btn");
-startBtn.addEventListener("click", startTimer);
+const startBtn = document.getElementById('start-btn');
+startBtn.addEventListener('click', startTimer);
 
 function convertMs(ms) {
   // Number of milliseconds per unit of time
