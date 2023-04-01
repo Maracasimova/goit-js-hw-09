@@ -1,7 +1,5 @@
-import flatpickr from 'flatpickr';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import 'flatpickr/dist/flatpickr.min.css';
-import 'flatpickr/dist/themes/dark.css';
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
 
 const options = {
   enableTime: true,
@@ -9,14 +7,48 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    if (selectedDates[0] < new Date()) {
-      Notify.failure('Please choose a date in the future');
+    const selectedDate = selectedDates[0];
+    const currentDate = new Date();
+
+    if (selectedDate <= currentDate) {
+      window.alert("Please choose a date in the future");
       return;
     }
-    refs.startBtn.disabled = false;
-    selectedTime = selectedDates[0];
+
+    const startBtn = document.getElementById("start-btn");
+    startBtn.disabled = false;
   },
 };
+
+const dateTimePicker = flatpickr("#datetime-picker", options);
+
+function addLeadingZero(value) {
+  return value.toString().padStart(2, "0");
+}
+
+function startTimer() {
+  const selectedDate = dateTimePicker.selectedDates[0];
+  const timerElem = document.getElementById("timer");
+  const intervalId = setInterval(() => {
+    const currentDate = new Date();
+    const remainingTime = selectedDate.getTime() - currentDate.getTime();
+
+    if (remainingTime <= 0) {
+      clearInterval(intervalId);
+      timerElem.textContent = "00:00:00:00";
+      return;
+    }
+
+    const { days, hours, minutes, seconds } = convertMs(remainingTime);
+
+    timerElem.textContent = `${addLeadingZero(days)}:${addLeadingZero(
+      hours
+    )}:${addLeadingZero(minutes)}:${addLeadingZero(seconds)}`;
+  }, 1000);
+}
+
+const startBtn = document.getElementById("start-btn");
+startBtn.addEventListener("click", startTimer);
 
 function convertMs(ms) {
   // Number of milliseconds per unit of time
@@ -26,81 +58,13 @@ function convertMs(ms) {
   const day = hour * 24;
 
   // Remaining days
-  const days = addLeadingZero(Math.floor(ms / day));
+  const days = Math.floor(ms / day);
   // Remaining hours
-  const hours = addLeadingZero(Math.floor((ms % day) / hour));
+  const hours = Math.floor((ms % day) / hour);
   // Remaining minutes
-  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute));
+  const minutes = Math.floor(((ms % day) % hour) / minute);
   // Remaining seconds
-  const seconds = addLeadingZero(
-    Math.floor((((ms % day) % hour) % minute) / second)
-  );
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
 
   return { days, hours, minutes, seconds };
 }
-
-
-const refs = {
-  inputDate: document.querySelector('#datetime-picker'),
-  startBtn: document.querySelector('button[data-start]'),
-  days: document.querySelector('span[data-days]'),
-  hours: document.querySelector('span[data-hours]'),
-  minutes: document.querySelector('span[data-minutes]'),
-  seconds: document.querySelector('span[data-seconds]'),
-};
-
-
-function addLeadingZero(value) {
-  return String(value).padStart(2, '0');
-}
-
-class Timer {
-  constructor() {
-    this.timerID = null;
-    this.isActive = false;
-    refs.startBtn.disabled = true;
-  }
-
-  startTimer() {
-    if (this.isActive) {
-      return;
-    }
-
-    this.isActive = true;
-    refs.startBtn.disabled = true;
-    refs.inputDate.disabled = true;
-    this.timerID = setInterval(() => {
-      const currentTime = Date.now();
-      const deltaTime = selectedTime - currentTime;
-      const componentsTimer = convertMs(deltaTime);
-      this.updateComponentsTimer(componentsTimer);
-      if (deltaTime <= 0) {
-        this.stopTimer();
-        this.updateComponentsTimer({
-          days: '00',
-          hours: '00',
-          minutes: '00',
-          seconds: '00',
-        });
-        refs.startBtn.disabled = false;
-        refs.inputDate.disabled = false;
-      }
-    }, 1000);
-  }
-
-  updateComponentsTimer({ days, hours, minutes, seconds }) {
-    refs.days.textContent = days;
-    refs.hours.textContent = hours;
-    refs.minutes.textContent = minutes;
-    refs.seconds.textContent = seconds;
-  }
-
-  stopTimer() {
-    clearInterval(this.timerID);
-    this.isActive = false;
-  }
-}
-
-const timer = new Timer();
-flatpickr(refs.inputDate, options);
-refs.startBtn.addEventListener('click', () => timer.startTimer());
