@@ -21,8 +21,8 @@ document.querySelector('form').addEventListener('submit', event => {
   const step = parseInt(event.target.elements.step.value);
 
   // Создаем указанное количество промисов
-  for (let i = 1; i <= amount; i++) {
-    createPromise(i, delay + i * step)
+  for (let i = 0; i < amount; i++) {
+    createPromise(i+1, delay + i * step)
       .then(({ position, delay }) => {
         // Отображаем уведомление в случае успешного выполнения промиса
         notiflix.Notify.success(
